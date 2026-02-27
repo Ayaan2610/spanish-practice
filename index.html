@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spanish Practice</title>
+  <style>
+    :root {
+      --bg: #f7f1e6;
+      --bg2: #fffaf0;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #4f46e5;
+      --accent-2: #7c3aed;
+      --shadow: 0 14px 30px rgba(15,23,42,0.12);
+      --shadow-soft: 0 8px 18px rgba(15,23,42,0.08);
+      --ok: #16a34a;
+      --bad: #dc2626;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, var(--bg), var(--bg2));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 14px 30px;
+      transition: background .35s ease, color .35s ease;
+    }
+
+    h1 { margin: 4px 0 6px; font-size: clamp(1.5rem,3.4vw,2.1rem); text-align:center; }
+    .subtitle { margin: 0 0 12px; color: var(--muted); text-align:center; max-width: 900px; }
+
+    .panel {
+      width: min(980px, 96vw);
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(99,102,241,.15);
+      border-radius: 16px;
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+      margin-bottom: 12px;
+      transition: all .35s ease;
+    }
+
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center; }
+    .panel-title { font-weight: 800; margin-bottom: 8px; color:#1e293b; }
+
+    .topic-select {
+      width: min(520px, 100%);
+      border: 1px solid rgba(15,23,42,.15);
+      background: #fffef8;
+      color: #0f172a;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-soft);
+      outline: none;
+    }
+
+    .controls { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
+
+    .btn {
+      border:none; background:#0f172a; color:#fff; padding:10px 14px;
+      border-radius:10px; cursor:pointer; font-weight:700; box-shadow: var(--shadow-soft);
+      transition: transform .15s ease, opacity .15s ease, background .3s ease;
+    }
+    .btn.secondary { background:#334155; }
+    .btn:hover { transform: translateY(-1px); opacity:.96; }
+    .btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+
+    .card-wrap { width:min(720px,95vw); perspective:1100px; }
+    .card { width:100%; height:320px; position:relative; transform-style:preserve-3d; transition:transform .58s ease; cursor:pointer; }
+    .card.flipped { transform: rotateY(180deg); }
+
+    .face {
+      position:absolute; inset:0; border-radius:20px; display:flex; align-items:center; justify-content:center;
+      padding:26px; text-align:center; backface-visibility:hidden; box-shadow: var(--shadow); line-height:1.2;
+      transition: all .35s ease;
+    }
+    .front { background: linear-gradient(145deg,#fff,#f8fafc); border:1px solid rgba(79,70,229,.14); font-size: clamp(1.8rem,3.6vw,2.5rem); font-weight:800; }
+    .back { transform: rotateY(180deg); background: linear-gradient(145deg,#fafafa,#fff); border:1px solid rgba(15,23,42,.08); font-size: clamp(1.2rem,2.8vw,1.8rem); font-weight:700; }
+
+    .meta { margin-top:10px; color:var(--muted); font-size:.95rem; text-align:center; font-weight:600; }
+
+    .feature-panel {
+      width:min(720px,95vw);
+      margin-top:10px;
+      background: rgba(255,255,255,.8);
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:14px;
+      box-shadow: var(--shadow-soft);
+      padding:10px;
+    }
+
+    .feature-tabs { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
+    .tab { padding:8px 12px; border-radius:999px; border:1px solid rgba(15,23,42,.15); background:#fff; font-weight:700; cursor:pointer; }
+    .tab.active { background: linear-gradient(90deg,var(--accent),var(--accent-2)); color:white; border-color: transparent; }
+
+    .section { display:none; }
+    .section.active { display:block; }
+
+    .pronounce-wrap { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; }
+    .small-note { text-align:center; color:var(--muted); font-size:.9rem; margin-top:6px; }
+
+    .quiz-box { display:flex; flex-direction:column; gap:8px; }
+    .quiz-question { font-weight:800; text-align:center; font-size:1.05rem; }
+    .mcq-grid { display:grid; grid-template-columns: 1fr; gap:8px; }
+    .mcq {
+      border:1px solid rgba(15,23,42,.14);
+      background:#fff;
+      border-radius:10px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:600;
+      text-align:left;
+      transition: transform .12s ease, border-color .2s ease, background .2s ease;
+    }
+    .mcq:hover { transform: translateY(-1px); }
+    .mcq.correct { border-color: var(--ok); background: rgba(22,163,74,.1); }
+    .mcq.wrong { border-color: var(--bad); background: rgba(220,38,38,.08); }
+
+    .quiz-footer { display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; margin-top:4px; }
+    .pill { padding:6px 10px; border-radius:999px; background:#fff; border:1px solid rgba(15,23,42,.12); font-weight:700; }
+
+    .theme-slider-wrap { margin-top:14px; display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255,255,255,.65); border:1px solid rgba(15,23,42,.1); border-radius:999px; box-shadow: var(--shadow-soft); }
+    .theme-label { user-select:none; }
+    .switch { position:relative; width:56px; height:30px; display:inline-block; }
+    .switch input { opacity:0; width:0; height:0; }
+    .slider { position:absolute; inset:0; border-radius:999px; background:#e2e8f0; border:1px solid rgba(15,23,42,.15); transition: background .25s ease; }
+    .slider:before { content:""; position:absolute; width:24px; height:24px; left:2px; top:2px; background:#fff; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,.18); transition: transform .25s ease; }
+    .switch input:checked + .slider { background: linear-gradient(90deg,#6d28d9,#8b5cf6); }
+    .switch input:checked + .slider:before { transform: translateX(26px); }
+
+    /* Royal dark */
+    body.dark {
+      --bg:#0b0717; --bg2:#140b2c; --text:#f5f3ff; --muted:#c4b5fd;
+      --shadow:0 16px 36px rgba(0,0,0,.45); --shadow-soft:0 10px 22px rgba(0,0,0,.35);
+      background: linear-gradient(180deg,var(--bg),var(--bg2)); color:var(--text);
+    }
+    body.dark .panel, body.dark .feature-panel { background: rgba(26,16,54,.7); border-color: rgba(167,139,250,.35); }
+    body.dark .panel-title { color:#ede9fe; }
+    body.dark .topic-select { background:#1b1338; color:#f5f3ff; border-color: rgba(167,139,250,.45); }
+    body.dark .btn { background:#5b21b6; color:#f5f3ff; }
+    body.dark .btn.secondary { background:#3b1b78; }
+    body.dark .front { background: linear-gradient(145deg,#22124a,#180f34); border-color: rgba(167,139,250,.45); color:#f5f3ff; }
+    body.dark .back { background: linear-gradient(145deg,#1b123c,#140d2e); border-color: rgba(167,139,250,.35); color:#ede9fe; }
+    body.dark .tab { background:#1b1338; color:#f5f3ff; border-color: rgba(167,139,250,.35); }
+    body.dark .tab.active { background: linear-gradient(90deg,#7c3aed,#a78bfa); color:#0b0717; }
+    body.dark .mcq { background:#1b1338; color:#f5f3ff; border-color: rgba(167,139,250,.35); }
+    body.dark .pill { background:#1b1338; color:#f5f3ff; border-color: rgba(167,139,250,.35); }
+    body.dark .theme-slider-wrap { background: rgba(26,16,54,.6); border-color: rgba(167,139,250,.35); }
+
+    @media (max-width: 600px){ .card{height:280px;} }
+  </style>
+</head>
+<body>
+  <h1>Spanish Practice</h1>
+  <p class="subtitle">Choose a topic, flip cards, then use pronunciation or MCQ quiz below 👇</p>
+
+  <div class="panel">
+    <div class="panel-title">Select a topic:</div>
+    <div class="row">
+      <select id="topicSelect" class="topic-select">
+        <option value="">-- Choose a topic --</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="prevBtn" class="btn secondary">◀ Previous</button>
+    <button id="nextBtn" class="btn secondary">Next ▶</button>
+  </div>
+
+  <div class="card-wrap">
+    <div class="card" id="card">
+      <div class="face front" id="front">Choose a topic above</div>
+      <div class="face back" id="back">Spanish → English</div>
+    </div>
+  </div>
+  <div class="meta" id="meta">No topic selected</div>
+
+  <div class="feature-panel">
+    <div class="feature-tabs">
+      <button class="tab active" data-tab="pronounce">🔊 Pronunciation</button>
+      <button class="tab" data-tab="quiz">🧠 MCQ Quiz</button>
+    </div>
+
+    <div id="pronounce" class="section active">
+      <div class="pronounce-wrap">
+        <button id="speakBtn" class="btn">🔊 Say Spanish Word</button>
+      </div>
+      <div class="small-note">Uses your browser voice (Spanish). Click anytime.</div>
+    </div>
+
+    <div id="quiz" class="section">
+      <div class="quiz-box">
+        <div class="quiz-question" id="quizQuestion">Choose a topic to start the quiz.</div>
+        <div class="mcq-grid" id="mcqGrid"></div>
+        <div class="quiz-footer">
+          <span class="pill" id="scorePill">Score: 0/0</span>
+          <button id="nextQuizBtn" class="btn secondary" disabled>Next Question</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="theme-slider-wrap" aria-label="Theme toggle">
+    <span class="theme-label">☀️</span>
+    <label class="switch">
+      <input type="checkbox" id="themeToggle" aria-label="Toggle dark mode">
+      <span class="slider"></span>
+    </label>
+    <span class="theme-label">🌙</span>
+  </div>
+
+  <script>
+    function makeCards(list, category){
+      return list.map(([spanish, english]) => ({ front: spanish, back: english, category }));
+    }
+
+    const topicsData = {
+      "Fruits & Vegetables (100+)": makeCards([
+        ['manzana','apple'],['plátano','banana'],['banana','banana'],['naranja','orange'],['pera','pear'],['uva','grape'],['fresa','strawberry'],['frambuesa','raspberry'],['arándano','blueberry'],['melón','melon'],
+        ['sandía','watermelon'],['piña','pineapple'],['mango','mango'],['papaya','papaya'],['kiwi','kiwi'],['cereza','cherry'],['ciruela','plum'],['melocotón','peach'],['albaricoque','apricot'],['limón','lemon'],
+        ['lima','lime'],['mandarina','mandarin'],['pomelo','grapefruit'],['granada','pomegranate'],['higo','fig'],['coco','coconut'],['aguacate','avocado'],['tomate','tomato'],['pepino','cucumber'],['zanahoria','carrot'],
+        ['patata','potato'],['papa','potato'],['cebolla','onion'],['ajo','garlic'],['pimiento','pepper'],['pimiento rojo','red pepper'],['pimiento verde','green pepper'],['lechuga','lettuce'],['espinaca','spinach'],['brócoli','broccoli'],
+        ['coliflor','cauliflower'],['repollo','cabbage'],['calabacín','zucchini'],['calabaza','pumpkin'],['berenjena','eggplant'],['champiñón','mushroom'],['maíz','corn'],['guisantes','peas'],['judías verdes','green beans'],['apio','celery'],
+        ['rábano','radish'],['remolacha','beetroot'],['alcachofa','artichoke'],['espárragos','asparagus'],['batata','sweet potato'],['yuca','cassava'],['lentejas','lentils'],['garbanzos','chickpeas'],['frijoles','beans'],['ensalada','salad'],
+        ['fruta','fruit'],['verdura','vegetable'],['mercado','market'],['supermercado','supermarket'],['fresco','fresh'],['maduro','ripe'],['verde','unripe/green'],['dulce','sweet'],['ácido','sour'],['amargo','bitter'],
+        ['lavar','to wash'],['pelar','to peel'],['cortar','to cut'],['cocinar','to cook'],['hervir','to boil'],['freír','to fry'],['asar','to roast'],['mezclar','to mix'],['probar','to taste'],['comer','to eat'],
+        ['beber','to drink'],['desayuno','breakfast'],['almuerzo','lunch'],['cena','dinner'],['merienda','snack'],['zumo','juice'],['jugo','juice'],['batido','smoothie'],['sopa','soup'],['plato','dish'],
+        ['nutritivo','nutritious'],['saludable','healthy'],['vitaminas','vitamins'],['fibra','fiber'],['proteína','protein'],['carbohidratos','carbohydrates'],['grasa','fat'],['azúcar','sugar'],['sal','salt'],['porción','portion']
+      ], 'Fruits & Vegetables'),
+
+      "Healthy Lifestyle (100+)": makeCards([
+        ['vida saludable','healthy lifestyle'],['salud','health'],['bienestar','well-being'],['hábito','habit'],['rutina','routine'],['equilibrio','balance'],['energía','energy'],['descanso','rest'],['sueño','sleep'],['dormir','to sleep'],
+        ['acostarse','to go to bed'],['levantarse','to get up'],['despertarse','to wake up'],['ejercicio','exercise'],['entrenar','to train'],['caminar','to walk'],['correr','to run'],['nadar','to swim'],['estirar','to stretch'],['yoga','yoga'],
+        ['deporte','sport'],['fuerza','strength'],['resistencia','endurance'],['flexibilidad','flexibility'],['hidratarse','to hydrate'],['agua','water'],['botella','bottle'],['comida sana','healthy food'],['dieta equilibrada','balanced diet'],['fruta','fruit'],
+        ['verduras','vegetables'],['proteínas','proteins'],['granos','grains'],['desayunar','to have breakfast'],['evitar','to avoid'],['comida chatarra','junk food'],['comida rápida','fast food'],['demasiado azúcar','too much sugar'],['menos sal','less salt'],['controlar porciones','control portions'],
+        ['relajarse','to relax'],['meditar','to meditate'],['respirar','to breathe'],['respiración','breathing'],['estrés','stress'],['calma','calm'],['mente','mind'],['cuerpo','body'],['postura','posture'],['estudiar sin estrés','study without stress'],
+        ['lavarse las manos','wash hands'],['higiene','hygiene'],['ducha','shower'],['limpio','clean'],['enfermo','sick'],['fuerte','strong'],['débil','weak'],['doctor','doctor'],['consulta','checkup'],['medicina','medicine'],
+        ['objetivo','goal'],['progreso','progress'],['constancia','consistency'],['motivado','motivated'],['descansar','to rest'],['pausa','break'],['aire libre','fresh air'],['sol','sun'],['naturaleza','nature'],['pantalla','screen'],
+        ['menos pantalla','less screen time'],['tiempo libre','free time'],['familia','family'],['amigos','friends'],['sonreír','to smile'],['feliz','happy'],['salud mental','mental health'],['confianza','confidence'],['autoestima','self-esteem'],['cuidarse','to take care of oneself'],
+        ['me siento bien','I feel good'],['estoy cansado','I am tired'],['necesito descansar','I need rest'],['voy a entrenar','I am going to train'],['bebo agua','I drink water'],['como sano','I eat healthy'],['duermo ocho horas','I sleep eight hours'],['hago ejercicio','I exercise'],['camino cada día','I walk every day'],['vida activa','active life']
+      ], 'Healthy Lifestyle'),
+
+      "Festivals: Christmas, La Tomatina & Day of the Dead (100+)": makeCards([
+        ['Navidad','Christmas'],['Nochebuena','Christmas Eve'],['Nochevieja','New Year\'s Eve'],['árbol de Navidad','Christmas tree'],['luces','lights'],['regalo','gift'],['villancico','carol'],['estrella','star'],['campana','bell'],['Papá Noel','Santa Claus'],
+        ['Reyes Magos','Three Kings'],['belén','nativity scene'],['familia','family'],['cena','dinner'],['celebrar','to celebrate'],['fiesta','party'],['invierno','winter'],['decoración','decoration'],['galleta','cookie'],['chocolate caliente','hot chocolate'],
+        ['La Tomatina','La Tomatina'],['tomate','tomato'],['batalla de tomates','tomato fight'],['Buñol','Bunol'],['festival','festival'],['multitud','crowd'],['camión','truck'],['ropa vieja','old clothes'],['gafas','goggles'],['diversión','fun'],
+        ['lanzar','to throw'],['manchar','to stain'],['reír','to laugh'],['verano','summer'],['agua','water'],['seguridad','safety'],['calle','street'],['evento','event'],['turista','tourist'],['tradición','tradition'],
+        ['Día de los Muertos','Day of the Dead'],['altar','altar'],['ofrenda','offering'],['calavera','skull'],['pan de muerto','bread of the dead'],['cempasúchil','marigold'],['vela','candle'],['foto','photo'],['recuerdo','memory'],['antepasados','ancestors'],
+        ['cementerio','cemetery'],['maquillaje','makeup'],['catrina','Catrina'],['colorido','colorful'],['honrar','to honor'],['recordar','to remember'],['espíritu','spirit'],['familiares','relatives'],['música','music'],['baile','dance'],
+        ['desfile','parade'],['máscara','mask'],['disfraz','costume'],['comida tradicional','traditional food'],['dulces','sweets'],['pan','bread'],['azúcar','sugar'],['vela encendida','lit candle'],['flores','flowers'],['cultura','culture'],
+        ['religión','religion'],['costumbre','custom'],['alegría','joy'],['unión','togetherness'],['celebración','celebration'],['día festivo','holiday'],['feria','fair'],['plaza','town square'],['misa','mass'],['procesión','procession'],
+        ['feliz Navidad','Merry Christmas'],['próspero año nuevo','Happy New Year'],['¡Feliz Día de Muertos!','Happy Day of the Dead'],['¡Qué divertido!','How fun!'],['vamos a celebrar','let\'s celebrate'],['tradición familiar','family tradition'],['comida típica','typical food'],['ropa tradicional','traditional clothing'],['ambiente festivo','festive atmosphere'],['recuerdo especial','special memory']
+      ], 'Festivals'),
+
+      "Identity & Personality (100+)": makeCards([
+        ['alto/a','tall'],['bajo/a','short'],['delgado/a','slim'],['gordo/a','overweight'],['fuerte','strong'],['débil','weak'],['guapo/a','good-looking'],['feo/a','ugly'],['joven','young'],['viejo/a','old'],
+        ['cabello','hair'],['pelo largo','long hair'],['pelo corto','short hair'],['rizado','curly'],['liso','straight'],['rubio/a','blonde'],['moreno/a','dark-haired'],['pelirrojo/a','red-haired'],['ojos','eyes'],['ojos marrones','brown eyes'],
+        ['ojos azules','blue eyes'],['barba','beard'],['bigote','mustache'],['sonrisa','smile'],['cara','face'],['amable','kind'],['simpático/a','friendly'],['antipático/a','unfriendly'],['tímido/a','shy'],['extrovertido/a','outgoing'],
+        ['serio/a','serious'],['gracioso/a','funny'],['inteligente','intelligent'],['creativo/a','creative'],['responsable','responsible'],['organizado/a','organized'],['desordenado/a','messy'],['paciente','patient'],['impaciente','impatient'],['honesto/a','honest'],
+        ['generoso/a','generous'],['egoísta','selfish'],['tranquilo/a','calm'],['nervioso/a','nervous'],['alegre','happy'],['triste','sad'],['emocionado/a','excited'],['cansado/a','tired'],['motivado/a','motivated'],['confundido/a','confused'],
+        ['valiente','brave'],['miedoso/a','fearful'],['ambicioso/a','ambitious'],['trabajador/a','hard-working'],['perezoso/a','lazy'],['educado/a','polite'],['maleducado/a','rude'],['puntual','punctual'],['optimista','optimistic'],['pesimista','pessimistic'],
+        ['carácter','character'],['personalidad','personality'],['identidad','identity'],['valores','values'],['opinión','opinion'],['gustos','likes'],['intereses','interests'],['afición','hobby'],['meta','goal'],['sueño','dream'],
+        ['me gusta','I like'],['no me gusta','I do not like'],['prefiero','I prefer'],['soy','I am'],['tengo','I have'],['pienso que','I think that'],['creo que','I believe that'],['parecer','to seem'],['sentirse','to feel'],['cambiar','to change'],
+        ['mejorar','to improve'],['aprender','to learn'],['crecer','to grow'],['describir','to describe'],['comparar','to compare'],['diferente','different'],['similar','similar'],['único/a','unique'],['normal','normal'],['especial','special'],
+        ['seguro/a','confident'],['inseguro/a','insecure'],['curioso/a','curious'],['imaginativo/a','imaginative'],['realista','realistic'],['sincero/a','sincere'],['amigable','friendly'],['independiente','independent'],['sociable','sociable'],['reservado/a','reserved']
+      ], 'Identity & Personality'),
+
+      "Family & Friends (100+)": makeCards([
+        ['familia','family'],['padre','father'],['madre','mother'],['papá','dad'],['mamá','mom'],['hermano','brother'],['hermana','sister'],['hijo','son'],['hija','daughter'],['abuelo','grandfather'],
+        ['abuela','grandmother'],['tío','uncle'],['tía','aunt'],['primo','cousin (m)'],['prima','cousin (f)'],['sobrino','nephew'],['sobrina','niece'],['nieto','grandson'],['nieta','granddaughter'],['padrastro','stepfather'],
+        ['madrastra','stepmother'],['familiares','relatives'],['hogar','home'],['casa','house'],['padres','parents'],['amigo','friend'],['amiga','friend (f)'],['mejor amigo','best friend'],['compañero','classmate'],['vecino','neighbor'],
+        ['amistad','friendship'],['apoyo','support'],['respeto','respect'],['confianza','trust'],['amor','love'],['cariño','affection'],['ayuda','help'],['problema','problem'],['discusión','argument'],['consejo','advice'],
+        ['llevarse bien','to get along'],['llevarse mal','to not get along'],['pasar tiempo','to spend time'],['visitar','to visit'],['hablar','to talk'],['escuchar','to listen'],['compartir','to share'],['ayudar','to help'],['perdonar','to forgive'],['apoyar','to support'],
+        ['reunión','gathering'],['fiesta','party'],['celebración','celebration'],['cumpleaños','birthday'],['regalo','gift'],['abrazo','hug'],['risa','laughter'],['recuerdo','memory'],['tradición','tradition'],['cultura','culture'],
+        ['respeto mutuo','mutual respect'],['honestidad','honesty'],['lealtad','loyalty'],['conflicto','conflict'],['solución','solution'],['decisión','decision'],['opinión','opinion'],['acuerdo','agreement'],['desacuerdo','disagreement'],['cercano/a','close'],
+        ['lejos','far'],['unido/a','close-knit'],['divertido/a','fun'],['serio/a','serious'],['comprensivo/a','understanding'],['paciente','patient'],['orgulloso/a','proud'],['agradecido/a','grateful'],['feliz','happy'],['triste','sad'],
+        ['enojado/a','angry'],['emocionado/a','excited'],['conocer','to meet/know'],['presentar','to introduce'],['invitar','to invite'],['aceptar','to accept'],['rechazar','to refuse'],['cuidar','to take care of'],['crecer juntos','to grow together'],['aprender juntos','to learn together'],
+        ['primero','first'],['segundo','second'],['siempre','always'],['a veces','sometimes'],['nunca','never'],['juntos','together'],['separados','separated'],['importante','important'],['especial','special'],['querido/a','dear']
+      ], 'Family & Friends'),
+
+      "School Life & Education (100+)": makeCards([
+        ['escuela','school'],['colegio','school (alt)'],['instituto','high school'],['clase','class'],['aula','classroom'],['profesor','teacher (m)'],['profesora','teacher (f)'],['estudiante','student'],['alumno','pupil'],['compañero de clase','classmate'],
+        ['director','principal'],['biblioteca','library'],['laboratorio','laboratory'],['gimnasio','gym'],['patio','playground'],['pasillo','hallway'],['mesa','desk'],['silla','chair'],['pizarra','board'],['ordenador','computer'],
+        ['libro','book'],['cuaderno','notebook'],['mochila','backpack'],['bolígrafo','pen'],['lápiz','pencil'],['borrador','eraser'],['regla','ruler'],['tijeras','scissors'],['pegamento','glue'],['hoja','sheet of paper'],
+        ['tarea','homework'],['proyecto','project'],['examen','exam'],['prueba','test'],['nota','grade'],['calificación','mark'],['asignatura','subject'],['matemáticas','math'],['ciencias','science'],['historia','history'],
+        ['geografía','geography'],['arte','art'],['música','music'],['educación física','PE'],['idiomas','languages'],['español','Spanish'],['inglés','English'],['horario','schedule'],['recreo','break'],['vacaciones','holidays'],
+        ['estudiar','to study'],['aprender','to learn'],['leer','to read'],['escribir','to write'],['escuchar','to listen'],['hablar','to speak'],['preguntar','to ask'],['responder','to answer'],['explicar','to explain'],['practicar','to practise'],
+        ['entregar','to hand in'],['revisar','to review'],['repasar','to revise'],['memorizar','to memorize'],['entender','to understand'],['mejorar','to improve'],['suspender','to fail'],['aprobar','to pass'],['trabajar en grupo','to work in a group'],['presentar','to present'],
+        ['fácil','easy'],['difícil','difficult'],['interesante','interesting'],['aburrido','boring'],['importante','important'],['útil','useful'],['rápido','fast'],['lento','slow'],['silencio','silence'],['ruido','noise'],
+        ['puntual','punctual'],['tarde','late'],['uniforme','uniform'],['regla escolar','school rule'],['disciplina','discipline'],['comportamiento','behavior'],['asistencia','attendance'],['ausente','absent'],['presente','present'],['objetivo','objective'],
+        ['preparar','to prepare'],['organizar','to organize'],['concentrarse','to concentrate'],['participar','to participate'],['colaborar','to collaborate'],['terminar','to finish'],['empezar','to start'],['intentar','to try'],['lograr','to achieve'],['éxito','success']
+      ], 'School Life & Education')
+    };
+
+    const topicSelectEl = document.getElementById('topicSelect');
+    const cardEl = document.getElementById('card');
+    const frontEl = document.getElementById('front');
+    const backEl = document.getElementById('back');
+    const metaEl = document.getElementById('meta');
+    const themeToggle = document.getElementById('themeToggle');
+
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.section');
+    const speakBtn = document.getElementById('speakBtn');
+    const quizQuestion = document.getElementById('quizQuestion');
+    const mcqGrid = document.getElementById('mcqGrid');
+    const nextQuizBtn = document.getElementById('nextQuizBtn');
+    const scorePill = document.getElementById('scorePill');
+
+    let activeTopicName = null;
+    let cards = [];
+    let index = 0;
+    let flipped = false;
+
+    let quizTotal = 0;
+    let quizCorrect = 0;
+    let currentQuiz = null;
+
+    function renderTopics(){
+      topicSelectEl.innerHTML = '<option value="">-- Choose a topic --</option>';
+      Object.keys(topicsData).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name.replace(' (100+)', '');
+        topicSelectEl.appendChild(opt);
+      });
+    }
+
+    function selectTopic(name){
+      activeTopicName = name.replace(' (100+)', '');
+      cards = [...topicsData[name]];
+      index = 0;
+      flipped = false;
+      cardEl.classList.remove('flipped');
+      render();
+      resetQuiz();
+      buildQuizQuestion();
+    }
+
+    function render(){
+      if(!cards.length){
+        frontEl.textContent = 'Choose a topic above';
+        backEl.textContent = 'Spanish → English';
+        metaEl.textContent = 'No topic selected';
+        return;
+      }
+      const c = cards[index];
+      frontEl.textContent = c.front;
+      backEl.textContent = c.back;
+      metaEl.textContent = `${activeTopicName} • ${index+1} / ${cards.length}`;
+      flipped = false;
+      cardEl.classList.remove('flipped');
+    }
+
+    function flip(){ if(!cards.length) return; flipped=!flipped; cardEl.classList.toggle('flipped', flipped); }
+    function next(){ if(!cards.length) return; index=(index+1)%cards.length; render(); }
+    function prev(){ if(!cards.length) return; index=(index-1+cards.length)%cards.length; render(); }
+
+    function applyTheme(theme){
+      const isDark = theme === 'dark';
+      document.body.classList.toggle('dark', isDark);
+      themeToggle.checked = isDark;
+      try { localStorage.setItem('sf_theme', theme); } catch(e){}
+    }
+
+    function speakCurrent(){
+      if(!cards.length) return;
+      const text = cards[index].front;
+      if(!('speechSynthesis' in window)) {
+        alert('Speech is not supported in this browser.');
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'es-ES';
+      u.rate = 0.95;
+      window.speechSynthesis.speak(u);
+    }
+
+    function resetQuiz(){
+      quizTotal = 0;
+      quizCorrect = 0;
+      currentQuiz = null;
+      scorePill.textContent = 'Score: 0/0';
+      nextQuizBtn.disabled = true;
+    }
+
+    function sampleChoices(correctEnglish){
+      const pool = cards.map(c => c.back).filter(v => v !== correctEnglish);
+      const choices = [correctEnglish];
+      while(choices.length < 4 && pool.length){
+        const i = Math.floor(Math.random()*pool.length);
+        const pick = pool.splice(i,1)[0];
+        if(!choices.includes(pick)) choices.push(pick);
+      }
+      while(choices.length < 4){ choices.push(correctEnglish); }
+      for(let i=choices.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [choices[i], choices[j]] = [choices[j], choices[i]];
+      }
+      return choices;
+    }
+
+    function buildQuizQuestion(){
+      if(!cards.length){
+        quizQuestion.textContent = 'Choose a topic to start the quiz.';
+        mcqGrid.innerHTML = '';
+        nextQuizBtn.disabled = true;
+        return;
+      }
+
+      const qIndex = Math.floor(Math.random()*cards.length);
+      const q = cards[qIndex];
+      currentQuiz = { answer: q.back, locked: false };
+
+      quizQuestion.textContent = `What is the English meaning of: “${q.front}”?`;
+      mcqGrid.innerHTML = '';
+      const choices = sampleChoices(q.back);
+
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'mcq';
+        btn.textContent = choice;
+        btn.addEventListener('click', () => handleAnswer(btn, choice));
+        mcqGrid.appendChild(btn);
+      });
+
+      nextQuizBtn.disabled = true;
+    }
+
+    function handleAnswer(btn, choice){
+      if(!currentQuiz || currentQuiz.locked) return;
+      currentQuiz.locked = true;
+      quizTotal += 1;
+      const isCorrect = choice === currentQuiz.answer;
+      if(isCorrect) quizCorrect += 1;
+
+      [...mcqGrid.children].forEach(el => {
+        const val = el.textContent;
+        if(val === currentQuiz.answer) el.classList.add('correct');
+        if(el === btn && !isCorrect) el.classList.add('wrong');
+        el.disabled = true;
+      });
+
+      scorePill.textContent = `Score: ${quizCorrect}/${quizTotal}`;
+      nextQuizBtn.disabled = false;
+    }
+
+    tabs.forEach(t => {
+      t.addEventListener('click', () => {
+        tabs.forEach(x => x.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
+        t.classList.add('active');
+        document.getElementById(t.dataset.tab).classList.add('active');
+      });
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', next);
+    document.getElementById('prevBtn').addEventListener('click', prev);
+    cardEl.addEventListener('click', flip);
+    speakBtn.addEventListener('click', speakCurrent);
+    nextQuizBtn.addEventListener('click', buildQuizQuestion);
+
+    topicSelectEl.addEventListener('change', e => {
+      const v = e.target.value;
+      if(!v){
+        activeTopicName = null; cards = []; index = 0; flipped = false;
+        cardEl.classList.remove('flipped');
+        render();
+        resetQuiz();
+        buildQuizQuestion();
+        return;
+      }
+      selectTopic(v);
+    });
+
+    themeToggle.addEventListener('change', () => applyTheme(themeToggle.checked ? 'dark' : 'light'));
+
+    document.addEventListener('keydown', e => {
+      if(e.code === 'Space'){ e.preventDefault(); flip(); }
+      if(e.key === 'ArrowRight') next();
+      if(e.key === 'ArrowLeft') prev();
+    });
+
+    renderTopics();
+    render();
+    buildQuizQuestion();
+
+    try {
+      const saved = localStorage.getItem('sf_theme');
+      applyTheme(saved === 'dark' ? 'dark' : 'light');
+    } catch(e){ applyTheme('light'); }
+
+    // basic runtime checks
+    console.assert(typeof makeCards === 'function', 'makeCards should exist');
+    console.assert(Object.keys(topicsData).length >= 6, 'Expected multiple topics');
+    console.assert(Array.isArray(topicsData[Object.keys(topicsData)[0]]), 'Topic value should be array');
+  </script>
+</body>
+</html>
